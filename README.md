@@ -1,14 +1,50 @@
 # Receipt-Native
 
+**给 AI Agent 每一次 tool call 签发可离线核验的回执**  
+*Signed execution receipts for every AI agent action*
+
 [![CI](https://github.com/ningyanhui/receipt-native/actions/workflows/ci.yml/badge.svg)](https://github.com/ningyanhui/receipt-native/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/receipt-native)](https://www.npmjs.com/package/receipt-native)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Node ≥20](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)](package.json)
 
-**Agent 的动作可以像包裹单一样核验** — 像 git 之于代码变更，每次 tool call 默认留下可转发、可离线校验的执行回执。
+---
 
-> 产品边界：**证据回执运行时（C1）**；**动作玻璃（C4）** 只是展示壳。  
-> 不是多通道 Gateway，不是 coding agent；消息通道**只快递回执**（本仓仅草稿），不作控制面。  
-> **任意 agent** 只要能导出 tool 事件，就能接入 — 见 [`docs/bring-your-agent.md`](docs/bring-your-agent.md)。
+## 这是什么
+
+你的 AI agent 每天执行几十上百次 `write_file`、`run_command`、`web_search`……  
+**你能事后证明它执行了什么、结果是什么吗？**
+
+Receipt-Native 在每一次 tool call 发生时，用 **Ed25519 私钥签名**，生成一份执行回执（JSON 文件）。  
+任何人随时在**完全离线**的环境下都能核验：这份回执是真的？还是伪造的？
+
+就像 git 让代码变更有据可查，Receipt-Native 让 **agent 的每一个动作有据可查**。
+
+### 适合谁
+
+- **开发者**：想留存 AI agent（Cursor、Claude Code、Codex 等）工具调用的可信记录，便于事后审计和复盘
+- **团队**：需要对 agent 产出保留签名证明，满足内部合规或复盘需求
+- **工具开发者**：为自定义 agent 附加「有签名、可验真伪」的执行日志
+
+### 这不是什么
+
+- **不是 agent 控制面 / Gateway** — 不介入 agent 的决策与执行流程，不做消息路由
+- **不是 coding agent** — 不自己写代码、不拥有 agent loop
+- **不是 SIEM / 企业 SaaS** — 无云端账号体系，本地运行
+- **消息投递目前只写本地草稿** — `deliver:draft` 仅生成本地 JSON，不真发 IM；  
+  实时签发路径通过 **JSONL watch** 实现（`npm run adapter:watch`）
+
+### 快速安装
+
+```bash
+npm i receipt-native          # npm 已发布 v0.1.1
+
+# 或克隆源码完整体验
+git clone https://github.com/ningyanhui/receipt-native.git
+cd receipt-native && npm install
+```
+
+完整接入指南 → [`docs/bring-your-agent.md`](docs/bring-your-agent.md)
 
 ---
 
