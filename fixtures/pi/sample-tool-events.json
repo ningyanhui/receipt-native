@@ -1,0 +1,18 @@
+{
+  "modelId": "pi/fixture-model",
+  "events": [
+    {
+      "eventId": "pi-1",
+      "ts": "2026-10-27T06:20:00.000Z",
+      "tool": { "name": "bash", "arguments": { "command": "pwd" } },
+      "toolResult": { "ok": true, "stdout": "/workspace\n" }
+    },
+    {
+      "eventId": "pi-2",
+      "ts": "2026-10-27T06:20:01.000Z",
+      "name": "write_file",
+      "args": { "path": "out.txt", "content": "from pi fixture" },
+      "result": { "ok": true }
+    }
+  ]
+}

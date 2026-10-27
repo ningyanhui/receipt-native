@@ -1,0 +1,24 @@
+{
+  "modelId": "claude-code/fixture",
+  "events": [
+    {
+      "id": "cc-1",
+      "timestamp": "2026-10-27T06:50:00.000Z",
+      "tool_use": {
+        "id": "toolu_01",
+        "name": "Read",
+        "input": { "file_path": "README.md" }
+      },
+      "tool_result": { "content": "# Receipt-Native\n" }
+    },
+    {
+      "id": "cc-2",
+      "timestamp": "2026-10-27T06:50:01.000Z",
+      "tool_use": {
+        "name": "Bash",
+        "input": { "command": "npm run demo" }
+      },
+      "result": { "exitCode": 0 }
+    }
+  ]
+}

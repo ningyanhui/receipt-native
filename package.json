@@ -11,7 +11,14 @@
     "forge-demo": "node src/cli/forge-demo.js",
     "glass:bundle": "node src/cli/glass-bundle.js",
     "glass:data": "node src/cli/glass-bundle.js",
-    "deliver:draft": "node src/cli/deliver-draft.js"
+    "deliver:draft": "node src/cli/deliver-draft.js",
+    "adapter:replay": "node src/cli/adapter-replay.js",
+    "adapter:generic:fixture": "node adapters/generic/from-fixture.js",
+    "adapter:pi:fixture": "node adapters/pi/from-fixture.js",
+    "adapter:cursor:fixture": "node adapters/cursor/from-fixture.js",
+    "adapter:codex:fixture": "node adapters/codex/from-fixture.js",
+    "adapter:claude-code:fixture": "node adapters/claude-code/from-fixture.js",
+    "test": "node --test test/receipt.test.js"
   },
   "engines": {
     "node": ">=20"

@@ -6,7 +6,7 @@
  * - publicKey: standard base64 of raw 32-byte Ed25519 public key
  * - signature: standard base64 of raw 64-byte Ed25519 signature
  *
- * @typedef {'demo-loop' | 'pi'} ProducerId
+ * @typedef {'demo-loop' | 'generic' | 'pi' | 'cursor' | 'codex' | 'claude-code'} ProducerId
  *
  * @typedef {Object} Receipt
  * @property {string} receiptVersion  e.g. "0.1.0"
@@ -28,6 +28,16 @@ export const RECEIPT_VERSION = '0.1.0';
 export const DEMO_MODEL_ID = 'demo-model/fixed';
 export const DEMO_POLICY_BUNDLE_HASH =
   'policy-bundle:mvp-fixed:allow-write_file+mock_outbound';
+
+/** Known producer ids used by adapters + demo-loop. */
+export const PRODUCER_IDS = /** @type {const} */ ([
+  'demo-loop',
+  'generic',
+  'pi',
+  'cursor',
+  'codex',
+  'claude-code',
+]);
 
 /**
  * Build an unsigned receipt object (signature/publicKey null).

@@ -1,0 +1,24 @@
+{
+  "modelId": "any-agent/fixture",
+  "policyBundleHash": "policy-bundle:generic-fixture:v1",
+  "events": [
+    {
+      "id": "generic-evt-0001",
+      "timestamp": "2026-10-27T06:00:00.000Z",
+      "toolName": "write_file",
+      "args": { "path": "demo-sandbox/hello.txt", "content": "hello from generic fixture\n" },
+      "result": { "ok": true, "bytes": 28 },
+      "argsPreview": { "path": "demo-sandbox/hello.txt" },
+      "resultPreview": { "ok": true }
+    },
+    {
+      "id": "generic-evt-0002",
+      "timestamp": "2026-10-27T06:00:01.000Z",
+      "toolName": "shell",
+      "args": { "command": "echo receipt-native" },
+      "result": { "exitCode": 0, "stdout": "receipt-native\n" },
+      "argsPreview": { "command": "echo receipt-native" },
+      "resultPreview": { "exitCode": 0 }
+    }
+  ]
+}
