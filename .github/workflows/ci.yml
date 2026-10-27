@@ -36,7 +36,10 @@ jobs:
           else
             echo "forged correctly red"
           fi
-      - name: Adapter fixture replay (generic + pi)
+      - name: Adapter fixture replay (all harnesses)
         run: |
           npm run adapter:replay -- --harness generic
           npm run adapter:replay -- --harness pi
+          npm run adapter:replay -- --harness cursor
+          npm run adapter:replay -- --harness codex
+          npm run adapter:replay -- --harness claude-code

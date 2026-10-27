@@ -40,6 +40,9 @@ npm run verify -- receipts/<file>.json
 npm run forge-demo
 npm run adapter:replay -- --harness generic
 npm run adapter:replay -- --harness pi
+npm run adapter:replay -- --harness cursor
+npm run adapter:replay -- --harness codex
+npm run adapter:replay -- --harness claude-code
 ```
 
 不要推送密钥；不要对接真实 Telegram 发送（演示用 mock outbox / deliver draft）。
