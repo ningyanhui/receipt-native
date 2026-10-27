@@ -96,7 +96,7 @@
 <body>
   <main>
     <h1>Receipt-Native · 离线校验</h1>
-    <p class="sub">粘贴 receipt JSON → 绿（Ed25519 验签通过）/ 红（失败）。纯前端 Web Crypto，可 <code>file://</code> 打开，无需联网。</p>
+    <p class="sub">粘贴 receipt JSON → 绿（Ed25519 验签通过）/ 红（失败）。纯前端 Web Crypto，可 <code>file://</code> 打开，无需联网。算法见 <code>verify-core.js</code>（与 glass 共用）。</p>
 
     <div id="banner" role="status" aria-live="polite"></div>
 
@@ -123,139 +123,77 @@
     </details>
   </main>
 
-  <script type="module">
-    /**
-     * Must match src/crypto/digest.js canonicalize + src/crypto/signing-payload.js
-     */
-    function sortValue(value) {
-      if (value === null || typeof value !== 'object') {
-        if (typeof value === 'undefined') return null;
-        return value;
-      }
-      if (Array.isArray(value)) return value.map(sortValue);
-      const out = {};
-      for (const key of Object.keys(value).sort()) {
-        const v = value[key];
-        if (typeof v === 'undefined') continue;
-        out[key] = sortValue(v);
-      }
-      return out;
-    }
+  <script src="./verify-core.js"></script>
+  <script>
+    (function () {
+      const { verifyReceiptBrowser, buildSigningMessage } = globalThis.ReceiptVerify;
 
-    function canonicalize(value) {
-      return JSON.stringify(sortValue(value));
-    }
+      const input = document.getElementById('input');
+      const banner = document.getElementById('banner');
+      const detail = document.getElementById('detail');
 
-    function buildSigningMessage(receipt) {
-      const { signature: _omit, ...rest } = receipt;
-      return canonicalize(rest);
-    }
-
-    function b64ToBytes(b64) {
-      const bin = atob(b64);
-      const out = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-      return out;
-    }
-
-    async function verifyReceiptBrowser(receipt) {
-      if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
-        return { ok: false, reason: 'receipt is not an object' };
-      }
-      const { signature, publicKey } = receipt;
-      if (typeof signature !== 'string' || !signature) {
-        return { ok: false, reason: 'missing signature' };
-      }
-      if (typeof publicKey !== 'string' || !publicKey) {
-        return { ok: false, reason: 'missing publicKey' };
+      function show(result, meta) {
+        banner.className = result.ok ? 'green' : 'red';
+        banner.textContent = result.ok ? 'GREEN · 验签通过' : `RED · ${result.reason}`;
+        detail.textContent = meta;
       }
 
-      let pubBytes, sigBytes;
-      try {
-        pubBytes = b64ToBytes(publicKey);
-        sigBytes = b64ToBytes(signature);
-      } catch {
-        return { ok: false, reason: 'publicKey/signature not valid base64' };
-      }
-      if (pubBytes.length !== 32) {
-        return { ok: false, reason: `publicKey must be 32 bytes, got ${pubBytes.length}` };
-      }
-      if (sigBytes.length !== 64) {
-        return { ok: false, reason: `signature must be 64 bytes, got ${sigBytes.length}` };
-      }
-
-      if (!globalThis.crypto?.subtle) {
-        return { ok: false, reason: 'Web Crypto SubtleCrypto unavailable (need modern browser / https or localhost or file:// with support)' };
-      }
-
-      let key;
-      try {
-        key = await crypto.subtle.importKey(
-          'raw',
-          pubBytes,
-          { name: 'Ed25519' },
-          false,
-          ['verify'],
-        );
-      } catch (err) {
-        return { ok: false, reason: `importKey failed: ${err.message || err} (browser may lack Ed25519)` };
+      async function runVerify() {
+        const raw = input.value.trim();
+        if (!raw) {
+          show({ ok: false, reason: 'empty input' }, '请粘贴 receipt JSON');
+          return;
+        }
+        let receipt;
+        try {
+          receipt = JSON.parse(raw);
+        } catch (err) {
+          show({ ok: false, reason: 'JSON parse error' }, String(err));
+          return;
+        }
+        const result = await verifyReceiptBrowser(receipt);
+        const meta = [
+          `toolName: ${receipt.toolName ?? '(missing)'}`,
+          `id: ${receipt.id ?? '(missing)'}`,
+          `producer: ${receipt.producer ?? '(missing)'}`,
+          `publicKey: ${typeof receipt.publicKey === 'string' ? receipt.publicKey.slice(0, 20) + '…' : '(missing)'}`,
+          `signingMessage length: ${buildSigningMessage(receipt).length} chars`,
+          result.ok ? 'status: green' : `status: red (${result.reason})`,
+        ].join('\n');
+        show(result, meta);
       }
 
-      const message = new TextEncoder().encode(buildSigningMessage(receipt));
-      let ok;
-      try {
-        ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sigBytes, message);
-      } catch (err) {
-        return { ok: false, reason: `verify threw: ${err.message || err}` };
+      document.getElementById('btnVerify').addEventListener('click', () => {
+        runVerify().catch((err) => show({ ok: false, reason: String(err) }, ''));
+      });
+      document.getElementById('btnClear').addEventListener('click', () => {
+        input.value = '';
+        banner.className = '';
+        banner.style.display = 'none';
+        banner.textContent = '';
+        detail.textContent = '等待粘贴…';
+      });
+
+      // Deep-link: ?r=<base64url JSON> or #r=<base64url JSON>
+      function loadFromQuery() {
+        try {
+          const params = new URLSearchParams(location.search);
+          let enc = params.get('r');
+          if (!enc && location.hash.startsWith('#r=')) {
+            enc = location.hash.slice(3);
+          }
+          if (!enc) return;
+          const b64 = enc.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+          const json = decodeURIComponent(escape(atob(b64 + pad)));
+          input.value = JSON.stringify(JSON.parse(json), null, 2);
+          runVerify();
+        } catch (err) {
+          show({ ok: false, reason: 'deep-link decode failed' }, String(err));
+        }
       }
-      return ok ? { ok: true } : { ok: false, reason: 'signature mismatch' };
-    }
-
-    const input = document.getElementById('input');
-    const banner = document.getElementById('banner');
-    const detail = document.getElementById('detail');
-
-    function show(result, meta) {
-      banner.className = result.ok ? 'green' : 'red';
-      banner.textContent = result.ok ? 'GREEN · 验签通过' : `RED · ${result.reason}`;
-      detail.textContent = meta;
-    }
-
-    async function runVerify() {
-      const raw = input.value.trim();
-      if (!raw) {
-        show({ ok: false, reason: 'empty input' }, '请粘贴 receipt JSON');
-        return;
-      }
-      let receipt;
-      try {
-        receipt = JSON.parse(raw);
-      } catch (err) {
-        show({ ok: false, reason: 'JSON parse error' }, String(err));
-        return;
-      }
-      const result = await verifyReceiptBrowser(receipt);
-      const meta = [
-        `toolName: ${receipt.toolName ?? '(missing)'}`,
-        `id: ${receipt.id ?? '(missing)'}`,
-        `producer: ${receipt.producer ?? '(missing)'}`,
-        `publicKey: ${typeof receipt.publicKey === 'string' ? receipt.publicKey.slice(0, 20) + '…' : '(missing)'}`,
-        `signingMessage length: ${buildSigningMessage(receipt).length} chars`,
-        result.ok ? 'status: green' : `status: red (${result.reason})`,
-      ].join('\n');
-      show(result, meta);
-    }
-
-    document.getElementById('btnVerify').addEventListener('click', () => {
-      runVerify().catch((err) => show({ ok: false, reason: String(err) }, ''));
-    });
-    document.getElementById('btnClear').addEventListener('click', () => {
-      input.value = '';
-      banner.className = '';
-      banner.style.display = 'none';
-      banner.textContent = '';
-      detail.textContent = '等待粘贴…';
-    });
+      loadFromQuery();
+    })();
   </script>
 </body>
 </html>

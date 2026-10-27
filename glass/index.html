@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receipt-Native · 动作玻璃</title>
+  <style>
+    :root {
+      --bg: #0c1017;
+      --panel: #161e2b;
+      --panel2: #1c2636;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --green: #1f8f4e;
+      --green-bg: #143d28;
+      --red: #c0392b;
+      --red-bg: #3d1a18;
+      --border: #2a3548;
+      --accent: #5b8def;
+      --amber: #c9a227;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 1.5rem 1.1rem 3rem;
+    }
+    h1 { font-size: 1.3rem; font-weight: 650; margin: 0 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.1rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .toolbar label { font-size: 0.8rem; color: var(--muted); }
+    button, .file-btn {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      padding: 0.45rem 0.85rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+    button.secondary, .file-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .file-btn { display: inline-block; }
+    .file-btn input { display: none; }
+    #status {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
+      min-height: 1.2em;
+    }
+    #timeline {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .row {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .row.selected { border-color: var(--accent); }
+    .row-head {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.65rem;
+      padding: 0.75rem 0.9rem;
+      cursor: pointer;
+      align-items: start;
+    }
+    .row-head:hover { background: var(--panel2); }
+    .badge {
+      display: inline-block;
+      min-width: 3.2rem;
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      margin-top: 0.15rem;
+    }
+    .badge.green { background: var(--green-bg); color: #7ddea8; border: 1px solid var(--green); }
+    .badge.red { background: var(--red-bg); color: #f0a39a; border: 1px solid var(--red); }
+    .badge.pending { background: #2a2a1a; color: var(--amber); border: 1px solid var(--amber); }
+    .meta .tool {
+      font-weight: 650;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95rem;
+    }
+    .meta .ts { color: var(--muted); font-size: 0.78rem; margin-left: 0.5rem; }
+    .meta .previews {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-word;
+    }
+    .meta .previews strong { color: #a8b8d0; font-weight: 600; }
+    .row-body {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 0.9rem 1rem;
+      background: #0e1520;
+    }
+    .row.open .row-body { display: block; }
+    .verify-line {
+      font-weight: 650;
+      margin-bottom: 0.55rem;
+      font-size: 0.9rem;
+    }
+    .verify-line.green { color: #7ddea8; }
+    .verify-line.red { color: #f0a39a; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.65rem; }
+    pre.receipt {
+      margin: 0;
+      padding: 0.75rem;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 360px;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #c5d0e0;
+    }
+    textarea#paste {
+      width: 100%;
+      min-height: 100px;
+      margin-top: 0.5rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      resize: vertical;
+      display: none;
+    }
+    textarea#paste.show { display: block; }
+    code { font-size: 0.85em; }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>动作玻璃 · Receipt-Native</h1>
+    <p class="sub">看得见龙虾在干什么，且能举证。证据是骨，玻璃是皮 — 不是 Gateway，不是 IDE。</p>
+
+    <div class="toolbar">
+      <button type="button" id="btnLoadRun">加载 glass/run.json</button>
+      <label class="file-btn">选文件…<input type="file" id="fileInput" accept="application/json,.json" /></label>
+      <button type="button" class="secondary" id="btnPasteToggle">粘贴 run JSON</button>
+      <button type="button" class="secondary" id="btnPasteApply" hidden>应用粘贴</button>
+    </div>
+    <textarea id="paste" spellcheck="false" placeholder='{ "receipts": [ … ] } 或单张 receipt / receipt 数组'></textarea>
+    <div id="status">等待加载…（请用仓库根目录起静态服务；file:// 下 fetch 常失败）</div>
+    <ul id="timeline"></ul>
+    <p class="hint">
+      生成数据：<code>npm run demo && npm run glass:bundle</code><br />
+      打开本页：在仓库根目录 <code>python3 -m http.server 8765</code> →
+      <code>http://127.0.0.1:8765/glass/</code>
+      （需能加载 <code>../verify/verify-core.js</code>）
+    </p>
+  </main>
+
+  <script src="../verify/verify-core.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -11,7 +11,7 @@
 - `verify` 页绿 / 红可转发（M2 ✅）
 - 60–90 秒录屏 demo
 
-当前进度：**M0–M2**（签名回执 + 离线绿/红校验）。
+当前进度：**M0–M3**（签名回执 + 离线绿/红 + 动作玻璃）。
 
 ## 快速开始（绿 / 红演示）
 
@@ -39,6 +39,19 @@ npm run verify -- receipts/forged-*.json     # → red
 1. `demo-sandbox/hello.txt` 被写入
 2. `demo-sandbox/outbox/*.json` 有一张**本地**模拟外发单（不真发网）
 3. `receipts/` 下至少 2 张 **signed** receipt（`write_file` + `mock_outbound`，含 `signature` + `publicKey`）
+4. `npm run glass:bundle` 后打开动作玻璃，时间线 ≥2 行且真单为绿
+
+### 动作玻璃（M3）
+
+```bash
+npm run demo
+npm run glass:bundle    # 同 glass:data → glass/run.json（最近一组 signed，排除 forged-*）
+# 从仓库根目录起静态服务（file:// 下 fetch 常失败）：
+python3 -m http.server 8765
+# 浏览器打开 http://127.0.0.1:8765/glass/
+```
+
+时间线按 timestamp 排序；每行 toolName / argsPreview / resultPreview + 绿/红验签；点击展开完整 receipt，可「送到 verify 页」。验签与 `verify/verify.html` 共用 `verify/verify-core.js`。
 
 ### 编码约定
 
@@ -57,7 +70,7 @@ npm run verify -- receipts/forged-*.json     # → red
 | M0 | 仓库骨架、不做清单、目录 | ✅ |
 | M1 | 每 tool call 落盘 unsigned receipt | ✅ demo-loop |
 | M2 | Ed25519 签名 + `verify/` 绿/红 | ✅ |
-| M3 | `glass/` 动作玻璃展示壳 | 占位 |
+| M3 | `glass/` 动作玻璃展示壳 | ✅ |
 | M4 | 消息通道仅投递回执（可选） | 未做 |
 
 ## 不做清单
@@ -89,8 +102,8 @@ src/crypto/     canonicalize、Ed25519 sign/verify、keys
 src/producer/   demo-loop（signed）
 src/cli/        keygen / demo / verify / forge-demo
 adapters/pi/    预留 Pi 接入说明（未实现）
-glass/          M3 动作玻璃占位
-verify/         verify.html 离线绿/红
+glass/          M3 动作玻璃（index + app.js；run.json 由 bundle 生成）
+verify/         verify.html + verify-core.js 离线绿/红
 keys/           本地密钥（gitignore；仅 .gitkeep + README）
 receipts/       落盘回执
 demo-sandbox/   本地演示沙箱

@@ -10,3 +10,4 @@ receipts/*.json
 !receipts/.gitkeep
 .DS_Store
 *.log
+glass/run.json
