@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --navy: #0f172a;
+        --navy-2: #111c33;
+        --panel: #152238;
+        --ink: #e2e8f0;
+        --muted: #94a3b8;
+        --cyan: #22d3ee;
+        --cyan-dim: rgba(34, 211, 238, 0.18);
+        --green: #22c55e;
+        --green-glow: rgba(34, 197, 94, 0.45);
+        --red: #ef4444;
+        --red-glow: rgba(239, 68, 68, 0.45);
+        --font: "Inter", "Segoe UI", system-ui, sans-serif;
+        --mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--navy); color: var(--ink); font-family: var(--font);
+      }
+      #root {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background:
+          radial-gradient(1200px 700px at 20% 10%, rgba(34,211,238,0.12), transparent 55%),
+          radial-gradient(900px 600px at 85% 80%, rgba(34,197,94,0.08), transparent 50%),
+          linear-gradient(160deg, #0b1224 0%, #0f172a 45%, #0a1628 100%);
+      }
+      .clip { position: absolute; inset: 0; }
+      .grid-bg {
+        position: absolute; inset: 0; opacity: 0.22; pointer-events: none;
+        background-image:
+          linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
+        background-size: 64px 64px;
+        mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+      }
+      .topbar {
+        position: absolute; top: 48px; left: 64px; right: 64px;
+        display: flex; align-items: center; justify-content: space-between;
+        opacity: 0;
+      }
+      .brand {
+        display: flex; align-items: center; gap: 14px;
+        font-weight: 700; letter-spacing: -0.02em; font-size: 28px;
+      }
+      .brand-mark {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: linear-gradient(135deg, var(--cyan), #0ea5e9);
+        box-shadow: 0 0 24px rgba(34,211,238,0.45);
+      }
+      .pill {
+        font-size: 16px; color: var(--muted); border: 1px solid rgba(148,163,184,0.25);
+        padding: 8px 16px; border-radius: 999px; background: rgba(15,23,42,0.55);
+      }
+      .scene-label {
+        position: absolute; bottom: 48px; left: 64px;
+        font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--muted); opacity: 0;
+      }
+      .scene-label strong { color: var(--cyan); font-weight: 600; }
+
+      /* ---- Hook ---- */
+      #hook .kicker {
+        position: absolute; top: 220px; left: 64px; right: 64px;
+        font-size: 22px; letter-spacing: 0.28em; text-transform: uppercase;
+        color: var(--cyan); opacity: 0;
+      }
+      #hook .headline {
+        position: absolute; top: 280px; left: 64px; width: 1400px;
+        font-size: 84px; line-height: 1.05; font-weight: 750; letter-spacing: -0.035em;
+        opacity: 0;
+      }
+      #hook .headline em {
+        font-style: normal; color: var(--cyan);
+        text-shadow: 0 0 40px rgba(34,211,238,0.35);
+      }
+      #hook .sub {
+        position: absolute; top: 520px; left: 64px; width: 1100px;
+        font-size: 32px; line-height: 1.45; color: var(--muted); opacity: 0;
+      }
+      #hook .negatives {
+        position: absolute; top: 680px; left: 64px; display: flex; gap: 16px; opacity: 0;
+      }
+      .chip {
+        padding: 12px 18px; border-radius: 12px; font-size: 20px; font-weight: 600;
+        border: 1px solid rgba(239,68,68,0.35); color: #fecaca; background: rgba(239,68,68,0.08);
+      }
+      .chip.ok {
+        border-color: rgba(34,197,94,0.4); color: #bbf7d0; background: rgba(34,197,94,0.1);
+      }
+      #hook .orbit {
+        position: absolute; right: 120px; top: 220px; width: 520px; height: 520px;
+        border-radius: 50%; border: 1px solid rgba(34,211,238,0.2); opacity: 0;
+      }
+      #hook .orbit::before {
+        content: ""; position: absolute; inset: 48px; border-radius: 50%;
+        border: 1px dashed rgba(148,163,184,0.25);
+      }
+      #hook .receipt-card {
+        position: absolute; right: 180px; top: 320px; width: 380px;
+        padding: 28px; border-radius: 20px; opacity: 0;
+        background: linear-gradient(160deg, rgba(21,34,56,0.95), rgba(15,23,42,0.92));
+        border: 1px solid rgba(34,211,238,0.35);
+        box-shadow: 0 30px 80px rgba(0,0,0,0.45), 0 0 40px rgba(34,211,238,0.12);
+      }
+      #hook .receipt-card .rc-title { font-size: 18px; color: var(--muted); margin-bottom: 10px; }
+      #hook .receipt-card .rc-main { font-size: 36px; font-weight: 700; margin-bottom: 18px; }
+      #hook .receipt-card .rc-row {
+        display: flex; justify-content: space-between; font-family: var(--mono);
+        font-size: 16px; color: var(--muted); padding: 8px 0; border-top: 1px solid rgba(148,163,184,0.15);
+      }
+      #hook .badge-green {
+        display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+        padding: 8px 14px; border-radius: 999px; background: rgba(34,197,94,0.15);
+        color: var(--green); font-weight: 700; font-size: 16px;
+        box-shadow: 0 0 24px var(--green-glow);
+      }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+
+      /* ---- Terminal ---- */
+      .term-wrap {
+        position: absolute; left: 160px; top: 160px; width: 1600px; height: 720px;
+        border-radius: 18px; overflow: hidden; opacity: 0;
+        background: #0b1220; border: 1px solid rgba(148,163,184,0.22);
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      }
+      .term-chrome {
+        height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 18px;
+        background: #121a2b; border-bottom: 1px solid rgba(148,163,184,0.15);
+      }
+      .term-chrome i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+      .term-chrome i:nth-child(1) { background: #ef4444; }
+      .term-chrome i:nth-child(2) { background: #eab308; }
+      .term-chrome i:nth-child(3) { background: #22c55e; }
+      .term-chrome span { margin-left: 14px; color: var(--muted); font-size: 15px; font-family: var(--mono); }
+      .term-body {
+        padding: 28px 32px; font-family: var(--mono); font-size: 26px; line-height: 1.55;
+        color: #cbd5e1; white-space: pre-wrap;
+      }
+      .term-body .prompt { color: var(--cyan); }
+      .term-body .ok { color: var(--green); font-weight: 700; }
+      .term-body .dim { color: #64748b; }
+      .term-body .line { opacity: 0; }
+
+      /* ---- Shot cards ---- */
+      .shot-stage {
+        position: absolute; left: 120px; top: 140px; width: 1680px; height: 780px;
+        display: flex; align-items: center; justify-content: center; opacity: 0;
+      }
+      .shot-frame {
+        position: relative; width: 1480px; height: 700px; border-radius: 18px; overflow: hidden;
+        border: 1px solid rgba(34,211,238,0.28);
+        box-shadow: 0 40px 120px rgba(0,0,0,0.55), 0 0 60px rgba(34,211,238,0.12);
+        background: #0b1220;
+      }
+      .shot-frame img {
+        width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block;
+      }
+      .shot-caption {
+        position: absolute; left: 140px; bottom: 70px; max-width: 900px;
+        font-size: 28px; color: var(--ink); opacity: 0;
+        text-shadow: 0 2px 16px rgba(0,0,0,0.8);
+      }
+      .shot-caption span { color: var(--cyan); }
+
+      /* ---- Status big ---- */
+      .status-hero {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        flex-direction: column; gap: 24px; opacity: 0;
+      }
+      .status-pill {
+        font-size: 96px; font-weight: 800; letter-spacing: -0.03em;
+        padding: 28px 64px; border-radius: 28px;
+      }
+      .status-pill.green {
+        color: #ecfdf5; background: rgba(34,197,94,0.18);
+        border: 2px solid rgba(34,197,94,0.7);
+        box-shadow: 0 0 80px var(--green-glow);
+      }
+      .status-pill.red {
+        color: #fef2f2; background: rgba(239,68,68,0.18);
+        border: 2px solid rgba(239,68,68,0.7);
+        box-shadow: 0 0 80px var(--red-glow);
+      }
+      .status-note { font-size: 30px; color: var(--muted); }
+
+      /* ---- Split compare ---- */
+      .split {
+        position: absolute; left: 120px; top: 180px; width: 1680px; height: 680px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 36px; opacity: 0;
+      }
+      .split .panel {
+        border-radius: 20px; padding: 40px; border: 1px solid rgba(148,163,184,0.2);
+        background: rgba(15,23,42,0.75); display: flex; flex-direction: column; gap: 18px;
+      }
+      .split .panel.g { border-color: rgba(34,197,94,0.45); box-shadow: 0 0 40px rgba(34,197,94,0.12); }
+      .split .panel.r { border-color: rgba(239,68,68,0.45); box-shadow: 0 0 40px rgba(239,68,68,0.12); }
+      .split h3 { font-size: 28px; color: var(--muted); font-weight: 600; }
+      .split .big { font-size: 64px; font-weight: 800; }
+      .split .big.g { color: var(--green); }
+      .split .big.r { color: var(--red); }
+      .split p { font-size: 24px; color: var(--ink); line-height: 1.4; }
+      .split code {
+        font-family: var(--mono); font-size: 18px; color: var(--muted);
+        background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 10px;
+      }
+
+      /* ---- Deliver ---- */
+      #deliver .draft-card {
+        position: absolute; left: 260px; top: 200px; width: 1400px; height: 560px;
+        border-radius: 22px; padding: 48px 56px; opacity: 0;
+        background: linear-gradient(165deg, #152238, #0f172a);
+        border: 1px solid rgba(34,211,238,0.3);
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      }
+      #deliver .draft-card h2 { font-size: 40px; margin-bottom: 12px; }
+      #deliver .draft-card .warn {
+        display: inline-flex; gap: 10px; align-items: center;
+        color: #fde68a; background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.35);
+        padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: 18px; margin-bottom: 28px;
+      }
+      #deliver .draft-card pre {
+        font-family: var(--mono); font-size: 22px; line-height: 1.55; color: #cbd5e1;
+        white-space: pre-wrap;
+      }
+      #deliver .cmd {
+        position: absolute; left: 260px; top: 800px; font-family: var(--mono);
+        font-size: 26px; color: var(--cyan); opacity: 0;
+      }
+
+      /* ---- End ---- */
+      #end .end-title {
+        position: absolute; top: 320px; left: 0; right: 0; text-align: center;
+        font-size: 72px; font-weight: 800; letter-spacing: -0.03em; opacity: 0;
+      }
+      #end .end-title em { font-style: normal; color: var(--cyan); }
+      #end .end-sub {
+        position: absolute; top: 430px; left: 0; right: 0; text-align: center;
+        font-size: 30px; color: var(--muted); opacity: 0;
+      }
+      #end .end-url {
+        position: absolute; top: 540px; left: 0; right: 0; text-align: center;
+        font-family: var(--mono); font-size: 28px; color: var(--cyan); opacity: 0;
+      }
+      #end .end-tag {
+        position: absolute; top: 640px; left: 0; right: 0; text-align: center;
+        font-size: 20px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="68"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <div class="grid-bg" aria-hidden="true"></div>
+
+      <audio
+        id="bed"
+        src="./assets/bed.wav"
+        data-start="0"
+        data-duration="68"
+        data-track-index="0"
+        data-volume="0.55"
+      ></audio>
+
+      <!-- persistent chrome -->
+      <div class="topbar" id="topbar">
+        <div class="brand"><div class="brand-mark"></div>Receipt-Native</div>
+        <div class="pill">证据回执 · 不是 Gateway / coding agent</div>
+      </div>
+
+      <!-- 0–9 Hook -->
+      <section id="hook" class="clip" data-start="0" data-duration="9" data-track-index="1">
+        <div class="kicker" id="hook-kicker">PRODUCT DEMO</div>
+        <div class="headline" id="hook-headline">Agent 的动作<br>可以像<em>包裹单</em>一样核验</div>
+        <div class="sub" id="hook-sub">每次 tool call 默认留下一张可转发、可离线校验的 Ed25519 回执。</div>
+        <div class="negatives" id="hook-neg">
+          <div class="chip">不是 Gateway</div>
+          <div class="chip">不是 coding agent</div>
+          <div class="chip ok">是 Receipt</div>
+        </div>
+        <div class="orbit" id="hook-orbit"></div>
+        <div class="receipt-card" id="hook-card">
+          <div class="rc-title">SIGNED RECEIPT</div>
+          <div class="rc-main">write_file</div>
+          <div class="rc-row"><span>run</span><span>demo-loop</span></div>
+          <div class="rc-row"><span>sig</span><span>ed25519…</span></div>
+          <div class="badge-green"><span class="dot"></span> VERIFY GREEN</div>
+        </div>
+        <div class="scene-label" id="hook-label"><strong>01</strong> · 主张</div>
+      </section>
+
+      <!-- 9–21 Terminal demo -->
+      <section id="demo" class="clip" data-start="9" data-duration="12" data-track-index="1">
+        <div class="term-wrap" id="term">
+          <div class="term-chrome"><i></i><i></i><i></i><span>~/receipt-native</span></div>
+          <div class="term-body" id="term-body">
+<span class="line" id="t1"><span class="prompt">$</span> npm run demo</span>
+<span class="line" id="t2"><span class="dim">→ signed receipt</span> write_file.json</span>
+<span class="line" id="t3"><span class="dim">→ signed receipt</span> mock_outbound.json</span>
+<span class="line" id="t4"><span class="ok">✓ self-check GREEN</span> · 2 receipts</span>
+<span class="line" id="t5"><span class="prompt">$</span> npm run verify -- receipts/write_file.json</span>
+<span class="line" id="t6"><span class="ok">signature valid · GREEN</span></span>
+          </div>
+        </div>
+        <div class="scene-label" id="demo-label"><strong>02</strong> · npm run demo → signed GREEN</div>
+      </section>
+
+      <!-- 21–33 Glass timeline -->
+      <section id="glass" class="clip" data-start="21" data-duration="12" data-track-index="1">
+        <div class="shot-stage" id="glass-stage">
+          <div class="shot-frame" id="glass-frame">
+            <img src="./assets/glass_timeline.png" alt="Action Glass timeline" />
+          </div>
+        </div>
+        <div class="shot-caption" id="glass-cap">动作玻璃时间线 · <span>同一 run 的动作一眼可见</span></div>
+        <div class="scene-label" id="glass-label"><strong>03</strong> · glass timeline</div>
+      </section>
+
+      <!-- 33–45 Expand + verify green -->
+      <section id="verify" class="clip" data-start="33" data-duration="12" data-track-index="1">
+        <div class="shot-stage" id="expand-stage">
+          <div class="shot-frame" id="expand-frame">
+            <img src="./assets/glass_expand.png" alt="Expanded receipt" />
+          </div>
+        </div>
+        <div class="shot-stage" id="verify-stage" style="opacity:0;">
+          <div class="shot-frame" id="verify-frame">
+            <img src="./assets/verify_green.png" alt="Verify green" />
+          </div>
+        </div>
+        <div class="status-hero" id="verify-stamp">
+          <div class="status-pill green">GREEN</div>
+          <div class="status-note">离线验签 · 签名对得上就是绿</div>
+        </div>
+        <div class="scene-label" id="verify-label"><strong>04</strong> · expand → verify GREEN</div>
+      </section>
+
+      <!-- 45–55 Forge red -->
+      <section id="forge" class="clip" data-start="45" data-duration="10" data-track-index="1">
+        <div class="term-wrap" id="forge-term" style="height:280px; top:140px; width:1600px; left:160px;">
+          <div class="term-chrome"><i></i><i></i><i></i><span>forge-demo</span></div>
+          <div class="term-body" style="font-size:24px;">
+<span class="line" id="f1"><span class="prompt">$</span> npm run forge-demo</span>
+<span class="line" id="f2"><span class="dim">→ forged receipt</span> forged-….json</span>
+<span class="line" id="f3"><span class="prompt">$</span> npm run verify -- receipts/forged-….json</span>
+<span class="line" id="f4" style="color:#ef4444;font-weight:700;">✗ signature INVALID · RED</span>
+          </div>
+        </div>
+        <div class="split" id="forge-split">
+          <div class="panel g">
+            <h3>真单</h3>
+            <div class="big g">GREEN</div>
+            <p>字段未改 · Ed25519 对得上</p>
+            <code>npm run verify -- receipts/…</code>
+          </div>
+          <div class="panel r">
+            <h3>假单（改一个字段）</h3>
+            <div class="big r">RED</div>
+            <p>可转发、可对质 — 不是普通日志</p>
+            <code>npm run forge-demo</code>
+          </div>
+        </div>
+        <div class="scene-label" id="forge-label"><strong>05</strong> · forge → RED</div>
+      </section>
+
+      <!-- 55–62 Deliver draft -->
+      <section id="deliver" class="clip" data-start="55" data-duration="7" data-track-index="1">
+        <div class="draft-card" id="draft">
+          <h2>delivery/outbox/draft-message.md</h2>
+          <div class="warn">⚠ 本地草稿 · 未真发 IM</div>
+          <pre id="draft-body"># Receipt delivery draft
+
+Attached: receipts/write_file.json (signed)
+Channel: local outbox only
+Status: ready to copy — do not auto-send</pre>
+        </div>
+        <div class="cmd" id="deliver-cmd">$ npm run deliver:draft</div>
+        <div class="scene-label" id="deliver-label"><strong>06</strong> · deliver:draft only</div>
+      </section>
+
+      <!-- 62–68 End -->
+      <section id="end" class="clip" data-start="62" data-duration="6" data-track-index="1">
+        <div class="end-title" id="end-title">像包裹单一样核验 · <em>Receipt-Native</em></div>
+        <div class="end-sub" id="end-sub">不是又一个 OpenClaw / Gateway / coding agent</div>
+        <div class="end-url" id="end-url">github.com/ningyanhui/receipt-native</div>
+        <div class="end-tag" id="end-tag">npm run demo:storyboard</div>
+      </section>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Persistent topbar
+      tl.fromTo("#topbar", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.15);
+
+      // ---- Hook 0–9 ----
+      tl.fromTo("#hook-kicker", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.3);
+      tl.fromTo("#hook-headline", { opacity: 0, y: 36, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.85, ease: "power4.out" }, 0.55);
+      tl.fromTo("#hook-sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 1.2);
+      tl.fromTo("#hook-neg", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 1.55);
+      tl.fromTo("#hook-orbit", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.9, ease: "power2.out" }, 0.8);
+      tl.fromTo("#hook-card", { opacity: 0, y: 40, rotate: 2 }, { opacity: 1, y: 0, rotate: 0, duration: 0.75, ease: "power3.out" }, 1.35);
+      tl.fromTo("#hook-label", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.8);
+      tl.to("#hook-card", { y: -10, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.2);
+      tl.to(["#hook-headline", "#hook-sub", "#hook-neg", "#hook-card", "#hook-orbit", "#hook-kicker", "#hook-label"], {
+        opacity: 0, duration: 0.45, ease: "power2.in", stagger: 0.03
+      }, 8.4);
+
+      // ---- Demo 9–21 ----
+      tl.fromTo("#term", { opacity: 0, y: 30, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, 9.05);
+      tl.fromTo("#demo-label", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 9.2);
+      ["#t1","#t2","#t3","#t4","#t5","#t6"].forEach((sel, i) => {
+        tl.fromTo(sel, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.28, ease: "power2.out" }, 9.4 + i * 0.55);
+      });
+      tl.to("#term", { opacity: 0, y: -16, duration: 0.4, ease: "power2.in" }, 20.4);
+      tl.to("#demo-label", { opacity: 0, duration: 0.3 }, 20.4);
+
+      // ---- Glass 21–33 ----
+      tl.fromTo("#glass-stage", { opacity: 0, y: 40, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 21.05);
+      tl.fromTo("#glass-cap", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45 }, 21.5);
+      tl.fromTo("#glass-label", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 21.2);
+      tl.to("#glass-frame", { scale: 1.03, duration: 8, ease: "none", transformOrigin: "50% 40%" }, 22);
+      tl.to(["#glass-stage", "#glass-cap", "#glass-label"], { opacity: 0, duration: 0.4, ease: "power2.in" }, 32.4);
+
+      // ---- Verify 33–45 ----
+      tl.fromTo("#expand-stage", { opacity: 0, x: -40, scale: 0.92 }, { opacity: 1, x: 0, scale: 0.92, duration: 0.6, ease: "power3.out" }, 33.05);
+      tl.fromTo("#verify-label", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 33.2);
+      tl.to("#expand-stage", { opacity: 0, scale: 0.96, duration: 0.45, ease: "power2.in" }, 37.0);
+      tl.fromTo("#verify-stage", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.55, ease: "power3.out" }, 37.2);
+      tl.fromTo("#verify-stamp", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 39.2);
+      tl.to("#verify-stamp", { opacity: 0, duration: 0.35 }, 41.8);
+      tl.to(["#verify-stage", "#verify-label"], { opacity: 0, duration: 0.4 }, 44.4);
+
+      // ---- Forge 45–55 ----
+      tl.fromTo("#forge-term", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 45.05);
+      tl.fromTo("#forge-label", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 45.15);
+      ["#f1","#f2","#f3","#f4"].forEach((sel, i) => {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.25 }, 45.4 + i * 0.4);
+      });
+      tl.to("#forge-term", { opacity: 0, y: -20, duration: 0.35 }, 48.2);
+      tl.fromTo("#forge-split", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 48.4);
+      tl.to(["#forge-split", "#forge-label"], { opacity: 0, duration: 0.35 }, 54.4);
+
+      // ---- Deliver 55–62 ----
+      tl.fromTo("#draft", { opacity: 0, y: 36, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, 55.05);
+      tl.fromTo("#deliver-cmd", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.4 }, 55.4);
+      tl.fromTo("#deliver-label", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 55.2);
+      tl.to(["#draft", "#deliver-cmd", "#deliver-label"], { opacity: 0, duration: 0.4 }, 61.4);
+
+      // ---- End 62–68 ----
+      tl.fromTo("#end-title", { opacity: 0, y: 28, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7, ease: "power4.out" }, 62.15);
+      tl.fromTo("#end-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45 }, 62.7);
+      tl.fromTo("#end-url", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45 }, 63.1);
+      tl.fromTo("#end-tag", { opacity: 0 }, { opacity: 0.9, duration: 0.4 }, 63.5);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

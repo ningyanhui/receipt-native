@@ -35,3 +35,7 @@ delivery/outbox/draft-*.json
 
 # demo-video ffmpeg concat list (absolute paths; regenerable)
 demo-video/list.txt
+
+# HyperFrames local render deps (do not publish)
+demo-video/hyperframes/node_modules/
+demo-video/hyperframes/chrome-headless-shell/

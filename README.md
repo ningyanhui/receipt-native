@@ -27,9 +27,9 @@ npm run demo:storyboard
 4. **绿 / 红**：真单绿、`npm run forge-demo` 假单红  
 5. **快递**：`npm run deliver:draft` 只写本地草稿（**不真发**）
 
-分镜：[`docs/demo-script.md`](docs/demo-script.md) · 发布自检：[`docs/release-checklist.md`](docs/release-checklist.md) · 架构：[`docs/architecture.md`](docs/architecture.md)
+分镜：[`docs/demo-script.md`](docs/demo-script.md) · 演示片：[HyperFrames 成片](demo-video/receipt-native-demo.mp4)（[`PIPELINE.md`](demo-video/PIPELINE.md)） · 发布自检：[`docs/release-checklist.md`](docs/release-checklist.md) · 架构：[`docs/architecture.md`](docs/architecture.md)
 
-参考成片（协调方生成，约 88s）：[`demo-video/receipt-native-demo.mp4`](demo-video/receipt-native-demo.mp4)
+参考成片（协调方生成，约 68s）：[`demo-video/receipt-native-demo.mp4`](demo-video/receipt-native-demo.mp4)
 
 ## 适配器状态
 
