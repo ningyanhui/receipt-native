@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receipt-Native · Verify</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --green: #1f8f4e;
+      --green-bg: #143d28;
+      --red: #c0392b;
+      --red-bg: #3d1a18;
+      --border: #2a3548;
+      --accent: #5b8def;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+    h1 { font-size: 1.35rem; font-weight: 650; margin: 0 0 0.35rem; }
+    .sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem; }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+    }
+    .row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.85rem 0 1.1rem; }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    #banner {
+      display: none;
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1rem;
+      font-weight: 650;
+      font-size: 1.05rem;
+    }
+    #banner.green { display: block; background: var(--green-bg); color: #7ddea8; border: 1px solid var(--green); }
+    #banner.red { display: block; background: var(--red-bg); color: #f0a39a; border: 1px solid var(--red); }
+    #detail {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      min-height: 3rem;
+    }
+    details {
+      margin-top: 1.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    details summary { cursor: pointer; color: var(--text); }
+    code { font-size: 0.8em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Receipt-Native · 离线校验</h1>
+    <p class="sub">粘贴 receipt JSON → 绿（Ed25519 验签通过）/ 红（失败）。纯前端 Web Crypto，可 <code>file://</code> 打开，无需联网。</p>
+
+    <div id="banner" role="status" aria-live="polite"></div>
+
+    <label for="input">Receipt JSON</label>
+    <textarea id="input" spellcheck="false" placeholder='{ "receiptVersion": "0.1.0", ... }'></textarea>
+
+    <div class="row">
+      <button type="button" id="btnVerify">校验</button>
+      <button type="button" class="secondary" id="btnClear">清空</button>
+    </div>
+
+    <div id="detail">等待粘贴…</div>
+
+    <details>
+      <summary>算法说明（须与 Node CLI 一致）</summary>
+      <ul>
+        <li><strong>publicKey</strong>：标准 base64，raw 32-byte Ed25519 公钥</li>
+        <li><strong>signature</strong>：标准 base64，raw 64-byte Ed25519 签名</li>
+        <li>签名消息 = UTF-8(<code>canonicalize(receipt 去掉 signature)</code>)</li>
+        <li><code>canonicalize</code>：对象键字典序递归排序（与 <code>src/crypto/digest.js</code> 相同）</li>
+        <li>CLI：<code>npm run verify -- path/to/receipt.json</code> → 打印 green/red</li>
+        <li>伪造对比：<code>npm run forge-demo</code> → 篡改 toolName，应验红</li>
+      </ul>
+    </details>
+  </main>
+
+  <script type="module">
+    /**
+     * Must match src/crypto/digest.js canonicalize + src/crypto/signing-payload.js
+     */
+    function sortValue(value) {
+      if (value === null || typeof value !== 'object') {
+        if (typeof value === 'undefined') return null;
+        return value;
+      }
+      if (Array.isArray(value)) return value.map(sortValue);
+      const out = {};
+      for (const key of Object.keys(value).sort()) {
+        const v = value[key];
+        if (typeof v === 'undefined') continue;
+        out[key] = sortValue(v);
+      }
+      return out;
+    }
+
+    function canonicalize(value) {
+      return JSON.stringify(sortValue(value));
+    }
+
+    function buildSigningMessage(receipt) {
+      const { signature: _omit, ...rest } = receipt;
+      return canonicalize(rest);
+    }
+
+    function b64ToBytes(b64) {
+      const bin = atob(b64);
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    async function verifyReceiptBrowser(receipt) {
+      if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
+        return { ok: false, reason: 'receipt is not an object' };
+      }
+      const { signature, publicKey } = receipt;
+      if (typeof signature !== 'string' || !signature) {
+        return { ok: false, reason: 'missing signature' };
+      }
+      if (typeof publicKey !== 'string' || !publicKey) {
+        return { ok: false, reason: 'missing publicKey' };
+      }
+
+      let pubBytes, sigBytes;
+      try {
+        pubBytes = b64ToBytes(publicKey);
+        sigBytes = b64ToBytes(signature);
+      } catch {
+        return { ok: false, reason: 'publicKey/signature not valid base64' };
+      }
+      if (pubBytes.length !== 32) {
+        return { ok: false, reason: `publicKey must be 32 bytes, got ${pubBytes.length}` };
+      }
+      if (sigBytes.length !== 64) {
+        return { ok: false, reason: `signature must be 64 bytes, got ${sigBytes.length}` };
+      }
+
+      if (!globalThis.crypto?.subtle) {
+        return { ok: false, reason: 'Web Crypto SubtleCrypto unavailable (need modern browser / https or localhost or file:// with support)' };
+      }
+
+      let key;
+      try {
+        key = await crypto.subtle.importKey(
+          'raw',
+          pubBytes,
+          { name: 'Ed25519' },
+          false,
+          ['verify'],
+        );
+      } catch (err) {
+        return { ok: false, reason: `importKey failed: ${err.message || err} (browser may lack Ed25519)` };
+      }
+
+      const message = new TextEncoder().encode(buildSigningMessage(receipt));
+      let ok;
+      try {
+        ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sigBytes, message);
+      } catch (err) {
+        return { ok: false, reason: `verify threw: ${err.message || err}` };
+      }
+      return ok ? { ok: true } : { ok: false, reason: 'signature mismatch' };
+    }
+
+    const input = document.getElementById('input');
+    const banner = document.getElementById('banner');
+    const detail = document.getElementById('detail');
+
+    function show(result, meta) {
+      banner.className = result.ok ? 'green' : 'red';
+      banner.textContent = result.ok ? 'GREEN · 验签通过' : `RED · ${result.reason}`;
+      detail.textContent = meta;
+    }
+
+    async function runVerify() {
+      const raw = input.value.trim();
+      if (!raw) {
+        show({ ok: false, reason: 'empty input' }, '请粘贴 receipt JSON');
+        return;
+      }
+      let receipt;
+      try {
+        receipt = JSON.parse(raw);
+      } catch (err) {
+        show({ ok: false, reason: 'JSON parse error' }, String(err));
+        return;
+      }
+      const result = await verifyReceiptBrowser(receipt);
+      const meta = [
+        `toolName: ${receipt.toolName ?? '(missing)'}`,
+        `id: ${receipt.id ?? '(missing)'}`,
+        `producer: ${receipt.producer ?? '(missing)'}`,
+        `publicKey: ${typeof receipt.publicKey === 'string' ? receipt.publicKey.slice(0, 20) + '…' : '(missing)'}`,
+        `signingMessage length: ${buildSigningMessage(receipt).length} chars`,
+        result.ok ? 'status: green' : `status: red (${result.reason})`,
+      ].join('\n');
+      show(result, meta);
+    }
+
+    document.getElementById('btnVerify').addEventListener('click', () => {
+      runVerify().catch((err) => show({ ok: false, reason: String(err) }, ''));
+    });
+    document.getElementById('btnClear').addEventListener('click', () => {
+      input.value = '';
+      banner.className = '';
+      banner.style.display = 'none';
+      banner.textContent = '';
+      detail.textContent = '等待粘贴…';
+    });
+  </script>
+</body>
+</html>

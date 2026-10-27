@@ -24,7 +24,10 @@ PRs that expand into the following will be closed:
 ## 本地开发
 
 ```bash
+npm run keygen
 npm run demo
+npm run verify -- receipts/<file>.json
+npm run forge-demo
 ```
 
 不要推送密钥；不要对接真实 Telegram 发送（演示用 mock outbox）。

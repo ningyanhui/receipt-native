@@ -4,16 +4,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestPayload } from '../crypto/digest.js';
 import { runDemoLoop } from '../producer/demo-loop.js';
+import { verifyReceipt } from '../crypto/sign.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 async function main() {
-  console.log('receipt-native · M1 demo-loop (unsigned receipts)');
+  console.log('receipt-native · M2 demo-loop (signed receipts)');
   console.log('Not a Gateway. Not a coding agent. Local only.\n');
 
   const { receipts } = await runDemoLoop();
 
-  // Known payloads must match demo-loop.js (recompute digests from disk receipts)
   const expectedByTool = {
     write_file: {
       args: {
@@ -37,7 +37,8 @@ async function main() {
     console.log(`  argsDigest:   ${receipt.argsDigest}`);
     console.log(`  resultDigest: ${receipt.resultDigest}`);
     console.log(`  producer:     ${receipt.producer}`);
-    console.log(`  signature:    ${receipt.signature === null ? '(none — M1 unsigned)' : receipt.signature}`);
+    console.log(`  publicKey:    ${receipt.publicKey?.slice(0, 16)}…`);
+    console.log(`  signature:    ${receipt.signature?.slice(0, 24)}…`);
 
     const expected = expectedByTool[receipt.toolName];
     if (!expected) throw new Error(`unexpected tool ${receipt.toolName}`);
@@ -48,6 +49,10 @@ async function main() {
       );
     }
     console.log('  argsDigest recomputed: OK');
+
+    const v = verifyReceipt(receipt);
+    if (!v.ok) throw new Error(`self-verify failed for ${receipt.toolName}: ${v.reason}`);
+    console.log('  signature verify: GREEN');
     console.log('');
   }
 
@@ -57,6 +62,12 @@ async function main() {
     }
     if (!/^[0-9a-f]{64}$/.test(receipt.resultDigest)) {
       throw new Error(`bad resultDigest for ${receipt.toolName}`);
+    }
+    if (typeof receipt.signature !== 'string' || !receipt.signature) {
+      throw new Error(`missing signature on ${receipt.toolName}`);
+    }
+    if (typeof receipt.publicKey !== 'string' || !receipt.publicKey) {
+      throw new Error(`missing publicKey on ${receipt.toolName}`);
     }
     const required = [
       'receiptVersion',
@@ -76,21 +87,22 @@ async function main() {
     }
   }
 
-  // Canonical stability
   const d1 = digestPayload({ a: 1, b: 'x' });
   const d2 = digestPayload({ b: 'x', a: 1 });
   if (d1 !== d2) throw new Error('canonical digest not stable under key reorder');
 
-  // Disk listing
   const onDisk = (await readdir(path.join(ROOT, 'receipts')))
     .filter((f) => f.endsWith('.json'))
     .sort();
-  console.log(`Wrote ${receipts.length} unsigned receipt(s) under receipts/`);
+  console.log(`Wrote ${receipts.length} signed receipt(s) under receipts/`);
   for (const f of onDisk) {
     const raw = JSON.parse(await readFile(path.join(ROOT, 'receipts', f), 'utf8'));
-    console.log(`  - ${f} (${raw.toolName})`);
+    const tag = raw.signature ? 'signed' : 'unsigned';
+    console.log(`  - ${f} (${raw.toolName}, ${tag})`);
   }
-  console.log('Next: M2 Ed25519 + verify.html');
+  console.log('\nTry: npm run verify -- receipts/<file>.json');
+  console.log('     open verify/verify.html and paste JSON → green');
+  console.log('     npm run forge-demo  → tampered receipt → red');
 }
 
 main().catch((err) => {

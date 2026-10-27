@@ -1,5 +1,7 @@
 node_modules/
-keys/
+keys/*
+!keys/.gitkeep
+!keys/README.md
 *.pem
 *.key
 demo-sandbox/outbox/

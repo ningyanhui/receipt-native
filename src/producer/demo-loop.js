@@ -4,6 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestPayload } from '../crypto/digest.js';
 import { makeUnsignedReceipt } from '../schema/receipt.js';
+import { keysExist, loadPrivateKey, loadPublicKeyBase64 } from '../crypto/keys.js';
+import { signReceipt } from '../crypto/sign.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -13,10 +15,19 @@ const OUTBOX_DIR = path.join(SANDBOX, 'outbox');
 const HELLO_FILE = path.join(SANDBOX, 'hello.txt');
 
 /**
- * Minimal tool-loop producer for M1.
- * Not a coding agent product — only emits unsigned receipts per tool call.
+ * Minimal tool-loop producer.
+ * Emits one signed receipt per tool call (M2). Requires keys/ from npm run keygen.
  */
 export async function runDemoLoop() {
+  if (!(await keysExist())) {
+    throw new Error(
+      'Missing Ed25519 keys. Run: npm run keygen\n' +
+        `Expected private key under keys/ed25519-private.pem`,
+    );
+  }
+  const privateKey = await loadPrivateKey();
+  const publicKeyBase64 = await loadPublicKeyBase64();
+
   await mkdir(RECEIPTS_DIR, { recursive: true });
   await mkdir(OUTBOX_DIR, { recursive: true });
 
@@ -39,6 +50,8 @@ export async function runDemoLoop() {
       result,
       argsPreview: { path: args.path, contentLen: args.content.length },
       resultPreview: result,
+      privateKey,
+      publicKeyBase64,
     });
     receipts.push(receipt);
   }
@@ -70,6 +83,8 @@ export async function runDemoLoop() {
       result,
       argsPreview: { channel: args.channel, to: args.to, bodyLen: args.body.length },
       resultPreview: result,
+      privateKey,
+      publicKeyBase64,
     });
     receipts.push(receipt);
   }
@@ -77,13 +92,21 @@ export async function runDemoLoop() {
   return { receipts, root: ROOT };
 }
 
-async function emitReceipt({ toolName, args, result, argsPreview, resultPreview }) {
+async function emitReceipt({
+  toolName,
+  args,
+  result,
+  argsPreview,
+  resultPreview,
+  privateKey,
+  publicKeyBase64,
+}) {
   const id = randomUUID();
   const timestamp = new Date().toISOString();
   const argsDigest = digestPayload(args);
   const resultDigest = digestPayload(result);
 
-  const receipt = makeUnsignedReceipt({
+  const unsigned = makeUnsignedReceipt({
     id,
     timestamp,
     toolName,
@@ -93,6 +116,8 @@ async function emitReceipt({ toolName, args, result, argsPreview, resultPreview 
     argsPreview,
     resultPreview,
   });
+
+  const receipt = signReceipt(unsigned, privateKey, publicKeyBase64);
 
   const fileName = `${timestamp.replace(/[:.]/g, '-')}_${toolName}_${id.slice(0, 8)}.json`;
   const filePath = path.join(RECEIPTS_DIR, fileName);

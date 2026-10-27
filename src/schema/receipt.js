@@ -1,6 +1,10 @@
 /**
- * Receipt JSON shape — TRACE subset intent for M1 (unsigned).
- * Signature fields reserved for M2.
+ * Receipt JSON shape — TRACE subset intent.
+ * M2: Ed25519 signature over canonicalize(receipt without signature).
+ *
+ * Encoding:
+ * - publicKey: standard base64 of raw 32-byte Ed25519 public key
+ * - signature: standard base64 of raw 64-byte Ed25519 signature
  *
  * @typedef {'demo-loop' | 'pi'} ProducerId
  *
@@ -14,10 +18,10 @@
  * @property {string} resultDigest    sha256 hex of canonical result
  * @property {string} policyBundleHash fixed string ok for MVP
  * @property {ProducerId} producer
- * @property {string|null} [signature]  omitted/null in M1; Ed25519 in M2
- * @property {string|null} [publicKey]  omitted/null in M1
- * @property {object} [argsPreview]     optional short args for humans (not hashed as-is)
- * @property {object} [resultPreview]   optional short result for humans
+ * @property {string|null} [signature]  Ed25519 sig (base64); null until signed
+ * @property {string|null} [publicKey]  Ed25519 pubkey (base64 raw32); set at sign time
+ * @property {object} [argsPreview]     optional short args for humans (included in signed payload)
+ * @property {object} [resultPreview]   optional short result for humans (included in signed payload)
  */
 
 export const RECEIPT_VERSION = '0.1.0';
@@ -26,7 +30,7 @@ export const DEMO_POLICY_BUNDLE_HASH =
   'policy-bundle:mvp-fixed:allow-write_file+mock_outbound';
 
 /**
- * Build an unsigned receipt object (M1).
+ * Build an unsigned receipt object (signature/publicKey null).
  * @param {object} p
  * @param {string} p.id
  * @param {string} p.timestamp

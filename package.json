@@ -5,7 +5,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "demo": "node src/cli/run-demo.js"
+    "keygen": "node src/cli/keygen.js",
+    "demo": "node src/cli/run-demo.js",
+    "verify": "node src/cli/verify.js",
+    "forge-demo": "node src/cli/forge-demo.js"
   },
   "engines": {
     "node": ">=20"
