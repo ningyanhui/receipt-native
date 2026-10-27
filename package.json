@@ -1,7 +1,7 @@
 {
   "name": "receipt-native",
   "version": "0.1.0",
-  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts \u2014 like git for agent work",
+  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts — like git for agent work",
   "type": "module",
   "private": true,
   "scripts": {
@@ -10,7 +10,8 @@
     "verify": "node src/cli/verify.js",
     "forge-demo": "node src/cli/forge-demo.js",
     "glass:bundle": "node src/cli/glass-bundle.js",
-    "glass:data": "node src/cli/glass-bundle.js"
+    "glass:data": "node src/cli/glass-bundle.js",
+    "deliver:draft": "node src/cli/deliver-draft.js"
   },
   "engines": {
     "node": ">=20"
