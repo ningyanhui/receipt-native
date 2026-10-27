@@ -9,6 +9,14 @@ for the **package artifact**. Receipt JSON contract changes also bump `receipt.r
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-27
+
+- Published to npm as `receipt-native@0.1.1` (`latest`).
+- CLI entrypoints include shebang so `bin` survives `npm publish`.
+- Note: `0.1.0` was staged then superseded; use `0.1.1`.
+
+
+
 ### Added
 
 - **`adapter:watch` CLI** — `npm run adapter:watch -- --file events.jsonl [--harness <name>]` tails a JSONL file of generic tool-events and emits a signed receipt for each appended line using the same `emitReceipt` pipeline as fixture replay; no vendor SDK required

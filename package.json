@@ -1,7 +1,7 @@
 {
   "name": "receipt-native",
-  "version": "0.1.0",
-  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts — like git for agent work",
+  "version": "0.1.1",
+  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts \u2014 like git for agent work",
   "type": "module",
   "engines": {
     "node": ">=20"
