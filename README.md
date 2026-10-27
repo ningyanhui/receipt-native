@@ -16,7 +16,9 @@
 ## 快速开始（绿 / 红演示）
 
 ```bash
-cd /workspace/receipt-native   # 或你的 clone 路径
+git clone https://github.com/ningyanhui/receipt-native.git
+cd receipt-native
+npm install                    # 安装依赖（当前无外部依赖，生成 lock 即可）
 npm run keygen                 # 生成本地 Ed25519（keys/ 不入库）
 npm run demo                   # 写出 signed receipts
 npm run verify -- receipts/<最新一张>.json   # → green
