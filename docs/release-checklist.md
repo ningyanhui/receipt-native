@@ -21,11 +21,13 @@ npm run demo:storyboard
 | `glass:bundle` | `glass/run.json` |
 | `deliver:draft` | `delivery/outbox/draft-*.md` only — **no IM send** |
 | `adapter:replay --harness generic` | signed receipts from fixture |
+| `adapter:watch --file <jsonl>` | live JSONL append → signed receipt (manual, outside storyboard) |
 
 ## Manual / docs
 
 - [ ] README 「30 秒故事板」 matches `demo:storyboard` / `docs/demo-script.md`
 - [ ] Adapter table still **generic-first** (named harnesses are examples, not a whitelist)
+- [ ] `adapter:watch` live path documented in `adapters/README.md` and each named adapter README
 - [ ] `CHANGELOG.md` has an entry for this version
 - [ ] `docs/breaking-changes.md` updated if `receiptVersion` or canonicalize/encoding changed
 - [ ] `SECURITY.md` still accurate (keys, forge closed)
@@ -43,6 +45,6 @@ npm run demo:storyboard
 
 ## Out of scope for a code release (coordinate separately)
 
-- Live Cursor / Pi / Codex / Claude Code hooks (stubs + docs only in-repo)
+- Official vendor SDK hooks for Cursor / Pi / Codex / Claude Code (JSONL watch covers live path; vendor-official event APIs not required)
 - Real IM send
 - Screen recording / GenerateVideo (use `docs/demo-script.md` as the command script)

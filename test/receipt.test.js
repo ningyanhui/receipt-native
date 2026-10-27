@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { createPrivateKey } from 'node:crypto';
 import { canonicalize, digestPayload } from '../src/crypto/digest.js';
@@ -116,5 +118,43 @@ describe('adapter fixture replay', () => {
     assert.ok(receipts.length >= 1);
     assert.equal(verifyReceipt(receipts[0].receipt).ok, true);
     assert.equal(receipts[0].receipt.producer, 'pi');
+  });
+});
+
+describe('adapter watch — live JSONL path', () => {
+  it('processes JSONL lines via the same emitReceipt pipeline', async () => {
+    // Simulate the core of adapter-watch: parse a JSONL line → normalise → emitReceipt → verify
+    const lines = [
+      '{"toolName":"shell","args":{"command":"echo hi"},"result":{"exitCode":0},"timestamp":"2026-10-27T10:00:00.000Z"}',
+      '{"toolName":"write_file","args":{"path":"out.txt","content":"ok"},"result":{"ok":true},"timestamp":"2026-10-27T10:00:01.000Z"}',
+    ];
+
+    const outDir = path.join(ROOT, 'receipts', 'test-out', 'watch-generic');
+    mkdirSync(outDir, { recursive: true });
+
+    for (const line of lines) {
+      const rawEv = JSON.parse(line);
+      const norm = normalizeToolEvent(rawEv);
+      const emitted = await emitReceipt({
+        ...norm,
+        producer: 'generic',
+        privateKey: testPriv,
+        publicKeyBase64: testPubB64,
+        outDir,
+      });
+      assert.equal(verifyReceipt(emitted.receipt).ok, true, `watch line "${norm.toolName}" should verify green`);
+    }
+  });
+
+  it('parseToolEventFile handles JSONL correctly', () => {
+    const jsonl = [
+      '{"toolName":"a","args":{},"result":{"ok":true}}',
+      '{"toolName":"b","args":{"x":1},"result":{"ok":false}}',
+    ].join('\n') + '\n';
+
+    const { events } = parseToolEventFile(jsonl);
+    assert.equal(events.length, 2);
+    assert.equal(events[0].toolName, 'a');
+    assert.equal(events[1].toolName, 'b');
   });
 });

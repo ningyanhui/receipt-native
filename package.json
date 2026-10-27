@@ -1,9 +1,35 @@
 {
   "name": "receipt-native",
   "version": "0.1.0",
-  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts \u2014 like git for agent work",
+  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts — like git for agent work",
   "type": "module",
-  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./src/producer/emit-receipt.js",
+    "./emit-receipt": "./src/producer/emit-receipt.js",
+    "./sign": "./src/crypto/sign.js",
+    "./digest": "./src/crypto/digest.js",
+    "./keys": "./src/crypto/keys.js",
+    "./schema": "./src/schema/receipt.js",
+    "./adapter/replay": "./adapters/_shared/replay.js",
+    "./adapter/tool-event": "./adapters/_shared/tool-event.js"
+  },
+  "bin": {
+    "receipt-verify": "./src/cli/verify.js",
+    "receipt-keygen": "./src/cli/keygen.js",
+    "receipt-watch": "./src/cli/adapter-watch.js",
+    "receipt-replay": "./src/cli/adapter-replay.js"
+  },
+  "files": [
+    "src/",
+    "adapters/",
+    "fixtures/generic/",
+    "fixtures/test-keys/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "keygen": "node src/cli/keygen.js",
     "demo": "node src/cli/run-demo.js",
@@ -13,6 +39,7 @@
     "glass:data": "node src/cli/glass-bundle.js",
     "deliver:draft": "node src/cli/deliver-draft.js",
     "adapter:replay": "node src/cli/adapter-replay.js",
+    "adapter:watch": "node src/cli/adapter-watch.js",
     "adapter:generic:fixture": "node adapters/generic/from-fixture.js",
     "adapter:pi:fixture": "node adapters/pi/from-fixture.js",
     "adapter:cursor:fixture": "node adapters/cursor/from-fixture.js",
@@ -21,9 +48,6 @@
     "test": "node --test test/receipt.test.js",
     "forge": "node src/cli/forge-demo.js",
     "demo:storyboard": "bash scripts/demo-storyboard.sh"
-  },
-  "engines": {
-    "node": ">=20"
   },
   "license": "MIT"
 }

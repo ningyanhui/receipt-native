@@ -1,6 +1,6 @@
 # Demo 录屏分镜 · 60–90 秒
 
-**一句话主张：** Agent 的动作可以像包裹单一样核验 — 不是又一个 Claw / coding agent。
+**一句话主张：** Agent 的动作可以像包裹单一样核验 — 证据回执运行时（C1），不是 coding agent。
 
 旁白总时长目标：**60–90 秒**。镜头全部本地；「丢进聊天」只用草稿示意，**不真发 IM**。
 
@@ -43,7 +43,7 @@ npm run demo:storyboard
 |--|--|
 | **画面** | 终端仓库根目录；或 README 标题 / 30 秒故事板一闪 |
 | **旁白** | 「这不是 Gateway，也不是 coding agent。每次 tool call 默认留下一张可转发、可离线校验的回执 — 像包裹单。」 |
-| **字幕** | Receipt-Native · 证据回执，不是 Claw |
+| **字幕** | Receipt-Native · 证据回执运行时（C1） |
 | **命令（可选预跑）** | `npm run demo:storyboard` 已在录屏前跑绿 |
 
 ---
@@ -106,7 +106,7 @@ npm run demo:storyboard
 | | |
 |--|--|
 | **画面** | `npm run deliver:draft` → 打开 `delivery/outbox/draft-message.md`；可用**截图占位** IM 输入框（**不要**点发送）。收束：绿/红并排或主张字幕 |
-| **旁白** | 「消息通道只快递回执。脚本只起草。三十秒懂一件事：agent 动作可以像包裹单核验 — 不是又一个 OpenClaw。」 |
+| **旁白** | 「消息通道只快递回执。脚本只起草。三十秒懂一件事：agent 动作可以像包裹单核验 — 证据回执运行时（C1），玻璃展示壳（C4）。」 |
 | **字幕** | M4：草稿就绪 / 未真发 |
 | **命令** | `npm run deliver:draft` |
 
