@@ -6,9 +6,8 @@
 
 **Agent 的动作可以像包裹单一样核验** — 像 git 之于代码变更，每次 tool call 默认留下可转发、可离线校验的执行回执。
 
-> **这不是 Gateway，也不是 coding agent，更不是又一个 OpenClaw。**  
-> 产品是 **证据回执运行时（C1）**；**动作玻璃（C4）** 只是展示壳。  
-> 消息通道**只快递回执**（本仓仅草稿），不作控制面。  
+> 产品边界：**证据回执运行时（C1）**；**动作玻璃（C4）** 只是展示壳。  
+> 不是多通道 Gateway，不是 coding agent；消息通道**只快递回执**（本仓仅草稿），不作控制面。  
 > **任意 agent** 只要能导出 tool 事件，就能接入 — 见 [`docs/bring-your-agent.md`](docs/bring-your-agent.md)。
 
 ---
@@ -68,21 +67,22 @@ npm run verify -- receipts/<最新>.json   # → green / red
 
 | Adapter | 说明 | 状态 |
 |---------|------|------|
-| **generic**（任意 agent）| Qoder / ZCode / WorkBuddy / 自定义… 最小 tool-event JSON/JSONL | ✅ **主路径** |
+| **generic**（任意 agent）| Qoder / ZCode / WorkBuddy / 自定义… 最小 tool-event JSON/JSONL | ✅ **主路径（含 live watch）** |
 | demo-loop | 仓库内置演示 producer | ✅ |
-| pi | 通用格式的示例映射 | ✅ fixture / live stub |
-| cursor | 同上 | ✅ fixture / live stub |
-| codex | 同上 | ✅ fixture / live stub |
-| claude-code | 同上 | ✅ fixture / live stub |
+| pi | 通用格式的示例映射 | ✅ fixture / live via JSONL watch |
+| cursor | 同上 | ✅ fixture / live via JSONL watch |
+| codex | 同上 | ✅ fixture / live via JSONL watch |
+| claude-code | 同上 | ✅ fixture / live via JSONL watch |
 
-> **live stub** = 已有 fixture 回放，live hook 需自行接线（见 [`docs/bring-your-agent.md`](docs/bring-your-agent.md)）。  
+> **live via JSONL watch** = `npm run adapter:watch -- --file events.jsonl [--harness <name>]`  
+> 向文件 append 一行 tool-event，自动签名出证回执，无需官方 SDK 钩子。  
 > 各适配器详情：[`adapters/README.md`](adapters/README.md)
 
 ---
 
 ## 不做清单
 
-1. 多通道 Gateway / 再造 OpenClaw
+1. 多通道 Gateway / 成为任意 agent 的控制中心
 2. 自研 coding agent loop /「拥有 loop 的平台」
 3. dataagent / 贴钱可谈签主线
 4. 完整 SIEM / 企业账号 SaaS

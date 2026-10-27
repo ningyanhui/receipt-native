@@ -6,7 +6,7 @@ Thanks for caring about **Receipt-Native** — agent actions as forwardable, off
 
 PRs that expand into the following will be closed:
 
-1. **多通道 Gateway / 再造 OpenClaw** — 消息通道最多作回执投递，不作产品本体  
+1. **多通道 Gateway / 成为任意 agent 的控制中心** — 消息通道最多作回执投递，不作产品本体  
 2. **自研 coding agent loop / 通用对话壳 /「拥有 loop 的平台」** — demo-loop 仅打通 receipt 管线；本仓库不托管多 harness 运行时  
 3. **dataagent / 贴钱可谈签 / 结果工单主线** — 已明确否决  
 4. **完整 SIEM / 可观测 SaaS / 企业账号体系** — 禁止 otel/仪表盘主叙事  
@@ -49,4 +49,4 @@ npm run adapter:replay -- --harness claude-code
 
 ## 命名提醒
 
-一句话主张优先用「包裹单 / agent 的 git / 可转发执行回执」，避免写成「又一个 otel」或「又一个 OpenClaw」。
+一句话主张优先用「包裹单 / agent 的 git / 可转发执行回执」，避免写成「又一个 otel」或「多通道 Gateway」。
