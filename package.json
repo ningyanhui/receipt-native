@@ -1,0 +1,14 @@
+{
+  "name": "receipt-native",
+  "version": "0.1.0",
+  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts — like git for agent work",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "demo": "node src/cli/run-demo.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,10 @@
+node_modules/
+keys/
+*.pem
+*.key
+demo-sandbox/outbox/
+demo-sandbox/hello.txt
+receipts/*.json
+!receipts/.gitkeep
+.DS_Store
+*.log
