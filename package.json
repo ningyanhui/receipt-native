@@ -1,7 +1,7 @@
 {
   "name": "receipt-native",
   "version": "0.1.0",
-  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts — like git for agent work",
+  "description": "Receipt-Native: agent actions as forwardable, offline-verifiable receipts \u2014 like git for agent work",
   "type": "module",
   "private": true,
   "scripts": {
@@ -18,7 +18,9 @@
     "adapter:cursor:fixture": "node adapters/cursor/from-fixture.js",
     "adapter:codex:fixture": "node adapters/codex/from-fixture.js",
     "adapter:claude-code:fixture": "node adapters/claude-code/from-fixture.js",
-    "test": "node --test test/receipt.test.js"
+    "test": "node --test test/receipt.test.js",
+    "forge": "node src/cli/forge-demo.js",
+    "demo:storyboard": "bash scripts/demo-storyboard.sh"
   },
   "engines": {
     "node": ">=20"

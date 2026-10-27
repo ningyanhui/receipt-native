@@ -9,13 +9,27 @@
 
 ## 30 秒故事板
 
-1. **主张**：「agent 动作可以像包裹单核验」  
-2. **终端**：`npm run demo` 或 `adapter:replay` → **signed** receipt  
-3. **玻璃**：`/glass/` 时间线  
-4. **绿 / 红**：真单绿、`forge-demo` 假单红  
-5. **快递**：`deliver:draft` 只写本地草稿（**不真发**）
+一条命令串起全链路（推荐）：
 
-分镜：[`docs/demo-script.md`](docs/demo-script.md) · 架构：[`docs/architecture.md`](docs/architecture.md)
+```bash
+npm run demo:storyboard
+# → keygen(如需) → demo → verify 绿 → forge → verify 红 → glass → deliver 草稿 → adapter:replay generic
+# 然后: python3 -m http.server 8765
+#      glass  http://127.0.0.1:8765/glass/
+#      verify http://127.0.0.1:8765/verify/verify.html
+```
+
+分步对照：
+
+1. **主张**：「agent 动作可以像包裹单核验」  
+2. **终端**：`npm run demo` 或 `adapter:replay -- --harness generic` → **signed** receipt  
+3. **玻璃**：`npm run glass:bundle` → `/glass/` 时间线  
+4. **绿 / 红**：真单绿、`npm run forge-demo` 假单红  
+5. **快递**：`npm run deliver:draft` 只写本地草稿（**不真发**）
+
+分镜：[`docs/demo-script.md`](docs/demo-script.md) · 发布自检：[`docs/release-checklist.md`](docs/release-checklist.md) · 架构：[`docs/architecture.md`](docs/architecture.md)
+
+参考成片（协调方生成，约 88s）：[`demo-video/receipt-native-demo.mp4`](demo-video/receipt-native-demo.mp4)
 
 ## 适配器状态
 

@@ -1,23 +1,37 @@
 node_modules/
+
+# Key material — never commit real keygen output
 keys/*
 !keys/.gitkeep
 !keys/README.md
-# ignore PEM/KEY everywhere except committed insecure fixture keys
+keys/*.pem
+keys/*.b64
 *.pem
 *.key
+*.b64
+# insecure fixtures only (tests)
 !fixtures/test-keys/
 !fixtures/test-keys/**
 !fixtures/test-keys/*.pem
 !fixtures/test-keys/*.key
 !fixtures/test-keys/*.b64
+
 demo-sandbox/outbox/
 demo-sandbox/hello.txt
+
+# Runtime receipts (keep directory)
 receipts/*.json
 receipts/adapters/
 receipts/test-out/
 !receipts/.gitkeep
+
 .DS_Store
 *.log
+
+# Glass / delivery runtime (outbox keeps .gitkeep via its own .gitignore)
 glass/run.json
 delivery/outbox/draft-*.md
 delivery/outbox/draft-*.json
+
+# demo-video ffmpeg concat list (absolute paths; regenerable)
+demo-video/list.txt
