@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: npm install
+      - name: Unit tests
+        run: npm test
+      - name: Keygen + demo + verify green
+        run: |
+          npm run keygen
+          npm run demo
+          RECEIPT=$(ls -1 receipts/*_write_file_*.json | grep -v forged | sort | tail -1)
+          echo "Verifying $RECEIPT"
+          npm run verify -- "$RECEIPT"
+      - name: Forge + verify red
+        run: |
+          npm run forge-demo
+          FORGED=$(ls -1 receipts/forged-*.json | sort | tail -1)
+          echo "Expect red for $FORGED"
+          if npm run verify -- "$FORGED"; then
+            echo "forged receipt unexpectedly green" >&2
+            exit 1
+          else
+            echo "forged correctly red"
+          fi
+      - name: Adapter fixture replay (generic + pi)
+        run: |
+          npm run adapter:replay -- --harness generic
+          npm run adapter:replay -- --harness pi

@@ -1,0 +1,20 @@
+{
+  "receiptVersion": "0.1.0",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "timestamp": "2026-10-27T00:00:00.000Z",
+  "modelId": "fixture/golden",
+  "toolName": "write_file",
+  "argsDigest": "581dc33f712dad54b56ea9aee8383488152926f97440da6c7b4aa38fbfd2c717",
+  "resultDigest": "81a882e452e47507a790b427bc02d15336133ac3f00332dfe0bf9a989dfccb66",
+  "policyBundleHash": "policy-bundle:golden:v1",
+  "producer": "generic",
+  "signature": "/3dNBx3scTKEfJqUyP6P3V9HfKY1XSbt43ls0uIrYcj7U0wqGd3U9fBe/QHJNkAR74Tnat7pCnYbMlpWr2g/Bg==",
+  "publicKey": "0GR1/COMcJMZoZYgcN/vlsfltoHDoEAsIajnR/pP52E=",
+  "argsPreview": {
+    "path": "demo-sandbox/hello.txt"
+  },
+  "resultPreview": {
+    "ok": true,
+    "bytes": 7
+  }
+}
