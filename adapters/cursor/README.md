@@ -5,7 +5,10 @@ Maps Cursor / Cloud Agent–style `tool_call` records into the [generic schema](
 | Path | Status |
 |------|--------|
 | Fixture replay | ✅ `npm run adapter:replay -- --harness cursor` |
-| Live Cursor hook | **stub** — no official Cursor transcript export API yet; collect manually (see below) |
+| Live via JSONL watch | ✅ `npm run adapter:watch -- --file events.jsonl --harness cursor` |
+
+> No official Cursor transcript export API exists. Use one of the paths below to collect
+> events from a live session, then watch or replay.
 
 ## Fixture
 
@@ -13,26 +16,32 @@ Maps Cursor / Cloud Agent–style `tool_call` records into the [generic schema](
 npm run adapter:replay -- --harness cursor
 ```
 
-## Live (stub — manual collection)
+## Live — JSONL watch path (recommended)
 
-Cursor Cloud Agents do not currently expose a transcript export API.  
-To produce a receipt from a live Cursor session you have two options:
-
-**Option A — generic events (recommended)**  
-If you control code that runs inside the agent loop (e.g. a shell step or MCP server), emit generic tool-event objects and save them as JSONL yourself:
-
-```json
-{ "toolName": "Shell", "args": { "command": "npm test" }, "result": { "exitCode": 0 }, "timestamp": "…" }
-```
-
-Then replay:
+From inside an agent shell step, MCP server, or any wrapper that can intercept tool calls,
+append one JSON line per tool completion to a shared JSONL file, then watch it:
 
 ```bash
-npm run adapter:replay -- --harness generic --file /path/to/events.jsonl
+# Terminal 1 — start watch before (or during) the agent session
+npm run keygen          # once
+npm run adapter:watch -- --file /tmp/cursor-events.jsonl --harness cursor
+
+# Agent-side — append one line per tool call in Cursor-native shape:
+echo '{"tool_call":{"name":"Shell","arguments":{"command":"npm test"}},"result":{"exitCode":0}}' \
+  >> /tmp/cursor-events.jsonl
 ```
 
-**Option B — cursor fixture format (manual transcript)**  
-Copy tool-call entries from Cursor's terminal/debug output into a JSON array:
+Or emit in the **generic** shape (no mapper needed):
+
+```bash
+echo '{"toolName":"Shell","args":{"command":"npm test"},"result":{"exitCode":0}}' \
+  >> /tmp/cursor-events.jsonl
+# then: npm run adapter:watch -- --file /tmp/cursor-events.jsonl
+```
+
+## Live — batch replay (session end)
+
+Collect tool-call entries from Cursor's terminal/debug output into a JSON array, then replay:
 
 ```json
 [
@@ -40,12 +49,10 @@ Copy tool-call entries from Cursor's terminal/debug output into a JSON array:
 ]
 ```
 
-Replay:
-
 ```bash
 npm run adapter:replay -- --harness cursor --file /path/to/my-session.json
 ```
 
 `map-event.js` handles several Cursor field shapes (`tool_call.name`, `tool_call.function.name`, `toolCall.name`, `name`).
 
-Prefer Option A (generic) when you can instrument the hook yourself — it avoids this mapper entirely.
+Prefer the generic option when you can instrument the hook yourself — it skips this mapper entirely.
