@@ -2,12 +2,22 @@ node_modules/
 keys/*
 !keys/.gitkeep
 !keys/README.md
+# ignore PEM/KEY everywhere except committed insecure fixture keys
 *.pem
 *.key
+!fixtures/test-keys/
+!fixtures/test-keys/**
+!fixtures/test-keys/*.pem
+!fixtures/test-keys/*.key
+!fixtures/test-keys/*.b64
 demo-sandbox/outbox/
 demo-sandbox/hello.txt
 receipts/*.json
+receipts/adapters/
+receipts/test-out/
 !receipts/.gitkeep
 .DS_Store
 *.log
 glass/run.json
+delivery/outbox/draft-*.md
+delivery/outbox/draft-*.json
